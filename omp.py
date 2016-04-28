@@ -50,7 +50,8 @@ while ans:
     10.Start a TASK
     11.Stop a TASK
     12.Get latest report of TASK
-    13.List status of a TASK
+    13.Get latest report of all TASKS
+    14.List status of a TASK
     0.Exit/Quit
     """)
     ans=input("What would you like to do? ")
@@ -84,6 +85,7 @@ while ans:
 	portname = portlist.getElementsByTagName("name")[1].firstChild.data
 	portid = portlist.getAttribute("id")
 	print portid, portname
+      os.system("rm portlist.xml")
 
 #Create a new target
     elif ans==6:
@@ -102,6 +104,7 @@ while ans:
         print portid, portname
       portlisttarget=raw_input("ID of the portlist for new TARGET: ")
       os.system("omp -u %s -w %s --xml='<create_target><name>%s</name><hosts>%s</hosts><port_list id=\"%s\"></port_list></create_target>'" % (username,password,newtarget,iptarget,portlisttarget))
+      os.system("rm portlist.xml")
 
 #Create a new task
     elif ans==7:
@@ -149,8 +152,34 @@ while ans:
      result2 = result.strip()
      os.system("omp -u %s -w %s --get-report %s --format c402cc3e-b531-11e1-9163-406186ea4fc5 > \"%s\".pdf" % (username,password,result2,resultname2))
 
-#Get the status on a task
+#get the latest report on all tasks
     elif ans==13:
+	os.system("echo \"<xml>\" > tasks.xml")
+	os.system("omp -u %s -w %s --xml='<get_tasks/>' >> tasks.xml" % (username,password))
+	os.system("echo \"</xml>\" >> tasks.xml")
+
+	xmldoc = minidom.parse("tasks.xml")
+	xml = xmldoc.getElementsByTagName("xml")[0]
+	tasks = xml.getElementsByTagName("task")
+
+	f = open('tasks.xml', 'rb')
+	f.readlines()
+	f.close()
+	for task in tasks:
+        	taskid = task.getAttribute("id")
+	        taskname=("omp -u %s -w %s -iX '<get_tasks task_id=\"%s\" />' | sed -n '/<name/,/name>/p' | grep \"<name>\"  | sed -e 's/.<name>//' | sed -e 's/<.*//' | awk 'NR==2' | sed \"s/       //\"" %  (username,password,taskid))
+        	resultname = subprocess.check_output(taskname, shell=True)
+	        resultname2 = resultname.strip()
+	        taskreport="omp -u %s -w %s -iX '<get_tasks task_id=\"%s\" />' | sed -n '/<last_report/,/last_report>/p' | grep \"report id\"  | sed -e 's/<report id=\"//' | sed -e 's/\">.*//' | sed \"s/          //\"" % (username,password,taskid)
+        	result = subprocess.check_output(taskreport, shell=True)
+	        result2 = result.strip()
+	        os.system("omp -u %s -w %s --get-report %s --format c402cc3e-b531-11e1-9163-406186ea4fc5 > \"%s\".pdf" % (username,password,result2,resultname2))
+	        print ("%s report has been generated" % (resultname2))
+	os.system("rm tasks.xml")
+
+
+#Get the status on a task
+    elif ans==14:
      os.system("omp -u %s -w %s -G" % (username,password))
      taskid=raw_input("ID of TASK: ")
      taskstatus="omp -u %s -w %s -G | grep %s | awk '{print $2}'" % (username,password,taskid)
