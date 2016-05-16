@@ -179,9 +179,6 @@ while ans:
         xml = xmldoc.getElementsByTagName("xml")[0]
         tasks = xml.getElementsByTagName("task")
 
-        f = open('tasks.xml', 'rb')
-        f.readlines()
-        f.close()
         for task in tasks:
                 taskid = task.getAttribute("id")
  		os.system("omp -u %s -w %s -S %s" % (username,password,taskid))
@@ -209,9 +206,6 @@ while ans:
 	xml = xmldoc.getElementsByTagName("xml")[0]
 	tasks = xml.getElementsByTagName("task")
 
-	f = open('tasks.xml', 'rb')
-	f.readlines()
-	f.close()
 	for task in tasks:
       	 	taskid = task.getAttribute("id")
 		taskstatus=("omp -u %s -w %s -iX '<get_tasks task_id=\"%s\" />' | grep \"<status>\" | sed -e 's/.<status>//' | sed -e 's/<.*//'" %  (username,password,taskid))
