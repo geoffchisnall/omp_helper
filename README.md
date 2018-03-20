@@ -9,4 +9,6 @@ Requires
 --------
 1) python2.7
 
-usuage ./omp.py
+usuage
+------
+./omp.py
